@@ -1,36 +1,58 @@
 <?php
-header("Content-Type: application/json; charset=UTF-8");
-require_once "db.php";
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// HTTPメソッド取得
-$method = $_SERVER["REQUEST_METHOD"];
+use App\Router;
+use App\Controllers\UserController;
+use App\Controllers\ProductController;
+use App\Middleware\CorsMiddleware;
 
-switch ($method) {
-    case "GET":
-        // 全ユーザー取得
-        $stmt = $pdo->query("SELECT id, name, email FROM users");
-        echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
-        break;
+// エラーハンドリング
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
 
-    case "POST":
-        // JSON入力を取得
-        $input = json_decode(file_get_contents("php://input"), true);
-        if (!isset($input["name"]) || !isset($input["email"])) {
-            http_response_code(400);
-            echo json_encode(["error" => "Missing name or email"]);
-            exit;
-        }
+// CORSミドルウェア適用
+CorsMiddleware::handle();
 
-        $stmt = $pdo->prepare("INSERT INTO users (name, email) VALUES (:name, :email)");
-        $stmt->execute([
-            ":name" => $input["name"],
-            ":email" => $input["email"]
-        ]);
+// ルーター初期化
+$router = new Router();
 
-        echo json_encode(["message" => "User created", "id" => $pdo->lastInsertId()]);
-        break;
+// ルート定義
+$router->get('/', function() {
+    return json_encode([
+        'message' => 'Welcome to PHP API Demo',
+        'version' => '1.0.0',
+        'endpoints' => [
+            'GET /' => 'API情報',
+            'GET /api/users' => 'ユーザー一覧',
+            'GET /api/users/{id}' => 'ユーザー詳細',
+            'POST /api/users' => 'ユーザー作成',
+            'GET /api/products' => '商品一覧',
+            'GET /api/health' => 'ヘルスチェック'
+        ]
+    ]);
+});
 
-    default:
-        http_response_code(405); // Method Not Allowed
-        echo json_encode(["error" => "Method not allowed"]);
-}
+// ヘルスチェック
+$router->get('/api/health', function() {
+    return json_encode([
+        'status' => 'healthy',
+        'timestamp' => date('Y-m-d H:i:s'),
+        'environment' => $_ENV['APP_ENV'] ?? 'production'
+    ]);
+});
+
+// ユーザー関連エンドポイント
+$userController = new UserController();
+$router->get('/api/users', [$userController, 'index']);
+$router->get('/api/users/{id}', [$userController, 'show']);
+$router->post('/api/users', [$userController, 'store']);
+$router->put('/api/users/{id}', [$userController, 'update']);
+$router->delete('/api/users/{id}', [$userController, 'destroy']);
+
+// 商品関連エンドポイント
+$productController = new ProductController();
+$router->get('/api/products', [$productController, 'index']);
+$router->get('/api/products/{id}', [$productController, 'show']);
+
+// リクエスト処理
+$router->dispatch();
