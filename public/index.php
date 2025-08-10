@@ -48,6 +48,11 @@ $router->get('/api/users/{id}', [$userController, 'show']);
 $router->post('/api/users', [$userController, 'store']);
 $router->put('/api/users/{id}', [$userController, 'update']);
 $router->delete('/api/users/{id}', [$userController, 'destroy']);
+// バックアップ機能
+$router->post('/api/users/backup', [$userController, 'backup']);
+
+// CSV エクスポート機能
+$router->get('/api/users/export', [$userController, 'export']);
 
 // 商品関連エンドポイント
 $productController = new ProductController();
