@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーザー管理システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.5s ease-out;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+        }
+
+        .form-section h2, .users-section h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-section h2::before {
+            content: "➕";
+            font-size: 1.5rem;
+        }
+
+        .users-section h2::before {
+            content: "👥";
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            margin-left: 10px;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            padding: 8px 20px;
+            font-size: 0.9rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .user-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .user-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .user-item:hover {
+            background: white;
+            border-color: #667eea;
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .user-email {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .user-id {
+            background: #e3e8ff;
+            color: #667eea;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            animation: slideDown 0.5s ease-out;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: #0a5f3e;
+            border: 1px solid #52d89f;
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #8b2c1b;
+            border: 1px solid #ff9a9e;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .search-box input {
+            padding-left: 40px;
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: "...";
+            animation: dots 1.5s infinite;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes dots {
+            0%, 20% {
+                content: ".";
+            }
+            40% {
+                content: "..";
+            }
+            60%, 100% {
+                content: "...";
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ユーザー管理システム</h1>
+            <p class="subtitle">PHP API連携型ユーザー情報管理プラットフォーム</p>
+        </header>
+
+        <div id="alertContainer"></div>
+
+        <div class="main-content">
+            <div class="form-section">
+                <div class="card">
+                    <h2>新規ユーザー登録</h2>
+                    <form id="userForm">
+                        <input type="hidden" id="userId" value="">
+                        <div class="form-group">
+                            <label for="userName">名前</label>
+                            <input type="text" id="userName" placeholder="例: 山田太郎" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="userEmail">メールアドレス</label>
+                            <input type="email" id="userEmail" placeholder="例: yamada@example.com" required>
+                        </div>
+                        <button type="submit" class="btn" id="submitBtn">登録</button>
+                        <button type="button" class="btn btn-secondary" id="cancelBtn" style="display:none;">キャンセル</button>
+                    </form>
+                </div>
+
+                <div class="card" style="margin-top: 30px;">
+                    <h2 style="font-size: 1.5rem; margin-bottom: 20px;">📊 統計情報</h2>
+                    <div class="stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalUsers">0</div>
+                            <div class="stat-label">総ユーザー数</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <div class="stat-number" id="todayCount">0</div>
+                            <div class="stat-label">今日の登録</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="users-section">
+                <div class="card">
+                    <h2>ユーザー一覧</h2>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="名前またはメールで検索...">
+                    </div>
+                    <div id="userList" class="user-list">
+                        <div class="loading">ユーザー情報を読み込み中</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 削除確認モーダル -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-close" onclick="closeDeleteModal()">&times;</span>
+                <h3 class="modal-title">削除の確認</h3>
+            </div>
+            <p>このユーザーを本当に削除しますか？</p>
+            <p style="margin-top: 10px; color: #666;">この操作は取り消せません。</p>
+            <div style="margin-top: 20px; text-align: right;">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">キャンセル</button>
+                <button class="btn btn-delete" onclick="confirmDelete()">削除する</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API設定
+        const API_BASE_URL = window.location.origin + '/api';
+        let allUsers = [];
+        let deleteUserId = null;
+        let editMode = false;
+
+        // ページ読み込み時の処理
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUsers();
+            setupEventListeners();
+            updateDateTime();
+            setInterval(updateDateTime, 60000);
+        });
+
+        // イベントリスナーの設定
+        function setupEventListeners() {
+            document.getElementById('userForm').addEventListener('submit', handleSubmit);
+            document.getElementById('searchInput').addEventListener('input', handleSearch);
+            document.getElementById('cancelBtn').addEventListener('click', cancelEdit);
+        }
+
+        // ユーザー一覧の読み込み
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/users`);
+                if (!response.ok) throw new Error('ユーザー情報の取得に失敗しました');
+                
+                const data = await response.json();
+                allUsers = data.data || [];
+                displayUsers(allUsers);
+                updateStats();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('ユーザー情報の読み込みに失敗しました', 'error');
+                document.getElementById('userList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p>データの読み込みに失敗しました</p>
+                    </div>
+                `;
+            }
+        }
+
+        // ユーザー一覧の表示
+        function displayUsers(users) {
+            const userList = document.getElementById('userList');
+            
+            if (users.length === 0) {
+                userList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>ユーザーが登録されていません</p>
+                    </div>
+                `;
+                return;
+            }
+
+            userList.innerHTML = users.map(user => `
+                <div class="user-item">
+                    <div class="user-info">
+                        <div class="user-name">
+                            ${escapeHtml(user.name)}
+                            <span class="user-id">ID: ${user.id}</span>
+                        </div>
+                        <div class="user-email">${escapeHtml(user.email)}</div>
+                    </div>
+                    <div class="user-actions">
+                        <button class="btn btn-edit" onclick="editUser(${user.id})">編集</button>
+                        <button class="btn btn-delete" onclick="openDeleteModal(${user.id})">削除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // フォーム送信処理
+        async function handleSubmit(e) {
+            e.preventDefault();
+            
+            const userId = document.getElementById('userId').value;
+            const userData = {
+                name: document.getElementById('userName').value,
+                email: document.getElementById('userEmail').value
+            };
+
+            try {
+                let response;
+                if (editMode && userId) {
+                    // 更新処理
+                    response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(userData)
+                    });
+                } else {
+                    // 新規登録処理
+                    response = await fetch(`${API_BASE_URL}/users`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(userData)
+                    });
+                }
+
+                if (!response.ok) throw new Error('処理に失敗しました');
+                
+                const result = await response.json();
+                showAlert(editMode ? 'ユーザー情報を更新しました' : '新規ユーザーを登録しました', 'success');
+                
+                document.getElementById('userForm').reset();
+                cancelEdit();
+                loadUsers();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('処理に失敗しました', 'error');
+            }
+        }
+
+        // ユーザー編集
+        function editUser(id) {
+            const user = allUsers.find(u => u.id === id);
+            if (!user) return;
+
+            editMode = true;
+            document.getElementById('userId').value = user.id;
+            document.getElementById('userName').value = user.name;
+            document.getElementById('userEmail').value = user.email;
+            document.getElementById('submitBtn').textContent = '更新';
+            document.getElementById('cancelBtn').style.display = 'inline-block';
+            
+            // フォームセクションまでスクロール
+            document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 編集キャンセル
+        function cancelEdit() {
+            editMode = false;
+            document.getElementById('userId').value = '';
+            document.getElementById('userForm').reset();
+            document.getElementById('submitBtn').textContent = '登録';
+            document.getElementById('cancelBtn').style.display = 'none';
+        }
+
+        // 削除モーダルを開く
+        function openDeleteModal(id) {
+            deleteUserId = id;
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        // 削除モーダルを閉じる
+        function closeDeleteModal() {
+            deleteUserId = null;
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+
+        // 削除実行
+        async function confirmDelete() {
+            if (!deleteUserId) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/users/${deleteUserId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok && response.status !== 204) {
+                    throw new Error('削除に失敗しました');
+                }
+
+                showAlert('ユーザーを削除しました', 'success');
+                closeDeleteModal();
+                loadUsers();
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('削除に失敗しました', 'error');
+            }
+        }
+
+        // 検索処理
+        function handleSearch(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredUsers = allUsers.filter(user => 
+                user.name.toLowerCase().includes(searchTerm) ||
+                user.email.toLowerCase().includes(searchTerm)
+            );
+            displayUsers(filteredUsers);
+        }
+
+        // 統計情報の更新
+        function updateStats() {
+            document.getElementById('totalUsers').textContent = allUsers.length;
+            // 今日の登録数は実際のデータベースがないため仮の値
+            document.getElementById('todayCount').textContent = Math.floor(Math.random() * 5);
+        }
+
+        // アラート表示
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} show`;
+            alertDiv.textContent = message;
+            
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.classList.remove('show');
+                setTimeout(() => alertDiv.remove(), 500);
+            }, 3000);
+        }
+
+        // HTMLエスケープ
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // 日時更新
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            };
+            // 必要に応じて日時表示を追加
+        }
+    </script>
+</body>
+</html>

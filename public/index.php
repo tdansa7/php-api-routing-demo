@@ -56,3 +56,9 @@ $router->get('/api/products/{id}', [$productController, 'show']);
 
 // リクエスト処理
 $router->dispatch();
+
+// 管理画面ルート（index.phpに追加）
+$router->get('/admin', function() {
+    include __DIR__ . '/admin.html';
+    exit;
+});
